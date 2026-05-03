@@ -65,7 +65,7 @@
     ]
   },
   "session_target": "short",
-  "human_intervention": "깃허브 충돌났어 다시 리퀘스트 요청해줘",
+  "human_intervention": "터치 반응 속도가 너무 느려지면 플레이어가 번거롭게 될 수 있습니다. 장애물이 너무 많으면 플레이어가 힘들게 될 수 있습니다. 이것을 기반으로 수정해줘",
   "core_loop": [
     "merge_items",
     "complete_goal",
