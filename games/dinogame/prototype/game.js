@@ -1,90 +1,79 @@
-let time = 60, score = 0, bestScore = localStorage.getItem('best') || 0;
-const lane = document.getElementById('lane');
-const startButton = document.getElementById('startButton');
 const scoreDisplay = document.getElementById('score');
 const timeDisplay = document.getElementById('time');
-const bestDisplay = document.getElementById('best');
+const bestScoreDisplay = document.getElementById('best');
+const startButton = document.getElementById('startButton');
+const lane = document.getElementById('lane');
 const specNote = document.getElementById('specNote');
 
-function updateDisplay() {
+let score = 0;
+let timeLeft = 60;
+let bestScore = localStorage.getItem('best') || 0;
+
+function updateDisplays() {
     scoreDisplay.textContent = score;
-    timeDisplay.textContent = time;
-    bestDisplay.textContent = bestScore;
+    timeDisplay.textContent = timeLeft;
+    bestScoreDisplay.textContent = bestScore;
+}
+
+function gameLoop() {
+    if (timeLeft > 0) {
+        timeLeft--;
+        updateDisplays();
+        setTimeout(gameLoop, 1000);
+    } else {
+        checkBestScore();
+        specNote.textContent = 'Game Over!';
+        startButton.disabled = false;
+    }
+}
+
+function checkBestScore() {
+    if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('best', bestScore);
+    }
 }
 
 startButton.addEventListener('click', () => {
-    startGame();
-});
-
-function startGame() {
-    time = 60;
     score = 0;
-    updateDisplay();
-    specNote.textContent = 'Swipe left to dodge asteroids!';
-    let asteroidInterval = setInterval(() => {
-        if (time <= 0) {
-            clearInterval(asteroidInterval);
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem('best', bestScore);
+    timeLeft = 60;
+    specNote.textContent = '';
+    updateDisplays();
+    gameLoop();
+    startButton.disabled = true;
+
+    const obstacles = lane.querySelectorAll('.obstacle');
+    obstacles.forEach(obstacle => obstacle.remove());
+
+    let obstacleInterval = setInterval(() => {
+        if (timeLeft > 0) {
+            createObstacle();
+        } else {
+            clearInterval(obstacleInterval);
+        }
+    }, Math.random() * 2000 + 1000);
+
+    function createObstacle() {
+        const obstacle = document.createElement('div');
+        obstacle.className = 'obstacle';
+        obstacle.style.top = `${Math.floor(Math.random() * 300)}px`;
+        lane.appendChild(obstacle);
+
+        let obstacleTop = parseInt(obstacle.style.top, 10);
+        const moveObstacle = setInterval(() => {
+            if (obstacleTop > -50) {
+                obstacleTop--;
+                obstacle.style.top = `${obstacleTop}px`;
+            } else {
+                clearInterval(moveObstacle);
+                lane.removeChild(obstacle);
             }
-            specNote.textContent = `Game Over! Final Score: ${score}`;
-            return;
-        }
-        time--;
-        updateDisplay();
-        createAsteroid();
-    }, 1000);
-}
+        }, 20);
 
-function createAsteroid() {
-    const asteroid = document.createElement('div');
-    asteroid.classList.add('asteroid');
-    lane.appendChild(asteroid);
-    let asteroidX = Math.random() * (lane.offsetWidth - 50);
-    let velocity = Math.random() * 2 + 1;
-    let animationFrameId;
-
-    function moveAsteroid() {
-        if (asteroid.offsetLeft < 0) {
-            lane.removeChild(asteroid);
-            return;
-        }
-        asteroid.style.left = `${asteroidX - velocity}px`;
-        collisionDetection();
-        requestAnimationFrame(moveAsteroid);
+        obstacle.addEventListener('click', () => {
+            score++;
+            updateDisplays();
+            obstacle.remove();
+        });
     }
-
-    asteroidX -= lane.offsetWidth;
-    animationFrameId = requestAnimationFrame(moveAsteroid);
-
-    asteroid.addEventListener('touchstart', (e) => {
-        cancelAnimationFrame(animationFrameId);
-        score++;
-        updateDisplay();
-        asteroid.style.left = `${asteroid.offsetLeft + 100}px`;
-        requestAnimationFrame(moveAsteroid);
-    });
-
-    asteroid.addEventListener('click', () => {
-        cancelAnimationFrame(animationFrameId);
-        score++;
-        updateDisplay();
-        asteroid.style.left = `${asteroid.offsetLeft + 100}px`;
-        requestAnimationFrame(moveAsteroid);
-    });
-}
-
-function collisionDetection() {
-    const asteroids = lane.getElementsByClassName('asteroid');
-    for (let i = 0; i < asteroids.length; i++) {
-        if (parseInt(asteroids[i].style.left) <= 50 && parseInt(asteroids[i].style.left) >= -50) {
-            clearInterval(asteroidInterval);
-            if (score > bestScore) {
-                bestScore = score;
-                localStorage.setItem('best', bestScore);
-            }
-            specNote.textContent = `Game Over! Final Score: ${score}`;
-        }
-    }
-}
+});
