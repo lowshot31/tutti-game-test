@@ -1,79 +1,50 @@
-const scoreDisplay = document.getElementById('score');
-const timeDisplay = document.getElementById('time');
-const bestScoreDisplay = document.getElementById('best');
-const startButton = document.getElementById('startButton');
+let score = 0, time = 60, interval, bestScore = localStorage.getItem('best') || 0;
+
+document.getElementById('score').textContent = score;
+document.getElementById('time').textContent = time;
+document.getElementById('best').textContent = bestScore;
+
 const lane = document.getElementById('lane');
-const specNote = document.getElementById('specNote');
+const startButton = document.getElementById('startButton');
 
-let score = 0;
-let timeLeft = 60;
-let bestScore = localStorage.getItem('best') || 0;
-
-function updateDisplays() {
-    scoreDisplay.textContent = score;
-    timeDisplay.textContent = timeLeft;
-    bestScoreDisplay.textContent = bestScore;
+function updateDisplay() {
+    document.getElementById('score').textContent = score;
+    document.getElementById('time').textContent = time;
 }
 
-function gameLoop() {
-    if (timeLeft > 0) {
-        timeLeft--;
-        updateDisplays();
-        setTimeout(gameLoop, 1000);
-    } else {
-        checkBestScore();
-        specNote.textContent = 'Game Over!';
-        startButton.disabled = false;
-    }
-}
-
-function checkBestScore() {
-    if (score > bestScore) {
-        bestScore = score;
-        localStorage.setItem('best', bestScore);
-    }
+function endGame() {
+    clearInterval(interval);
+    const currentBest = parseInt(localStorage.getItem('best') || 0, 10);
+    if (score > currentBest) localStorage.setItem('best', score);
+    document.getElementById('specNote').textContent = `Game Over! Your Score: ${score}`;
 }
 
 startButton.addEventListener('click', () => {
-    score = 0;
-    timeLeft = 60;
-    specNote.textContent = '';
-    updateDisplays();
-    gameLoop();
-    startButton.disabled = true;
+    startButton.style.display = 'none';
+    interval = setInterval(() => {
+        time--;
+        updateDisplay();
+        if (time <= 0) endGame();
+    }, 1000);
 
-    const obstacles = lane.querySelectorAll('.obstacle');
-    obstacles.forEach(obstacle => obstacle.remove());
-
-    let obstacleInterval = setInterval(() => {
-        if (timeLeft > 0) {
-            createObstacle();
-        } else {
-            clearInterval(obstacleInterval);
-        }
-    }, Math.random() * 2000 + 1000);
-
-    function createObstacle() {
-        const obstacle = document.createElement('div');
-        obstacle.className = 'obstacle';
-        obstacle.style.top = `${Math.floor(Math.random() * 300)}px`;
-        lane.appendChild(obstacle);
-
-        let obstacleTop = parseInt(obstacle.style.top, 10);
-        const moveObstacle = setInterval(() => {
-            if (obstacleTop > -50) {
-                obstacleTop--;
-                obstacle.style.top = `${obstacleTop}px`;
-            } else {
-                clearInterval(moveObstacle);
-                lane.removeChild(obstacle);
-            }
-        }, 20);
-
-        obstacle.addEventListener('click', () => {
+    for (let i = 0; i < 5; i++) {
+        const asteroid = document.createElement('div');
+        asteroid.classList.add('asteroid');
+        asteroid.style.top = `${Math.random() * 420}px`;
+        lane.appendChild(asteroid);
+        
+        asteroid.addEventListener('click', () => {
             score++;
-            updateDisplays();
-            obstacle.remove();
+            updateDisplay();
         });
+    }
+});
+
+document.body.addEventListener('touchstart', (e) => {
+    const target = e.target.closest('.asteroid');
+    if (target) {
+        score++;
+        updateDisplay();
+        lane.removeChild(target);
     }
 });
