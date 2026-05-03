@@ -40,7 +40,7 @@
         "title": "Human intervention checkpoint",
         "agent_id": "human_operator",
         "task": "intervention",
-        "status": "skipped",
+        "status": "completed",
         "progress_percent": 67,
         "schedule_label": "After CEO review"
       },
@@ -65,7 +65,7 @@
     ]
   },
   "session_target": "short",
-  "human_intervention": "",
+  "human_intervention": "시스템을 간소화 해서 진행해",
   "core_loop": [
     "merge_items",
     "complete_goal",
