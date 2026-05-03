@@ -65,7 +65,7 @@
     ]
   },
   "session_target": "short",
-  "human_intervention": "시스템을 간소화 해서 진행해",
+  "human_intervention": "깃허브 충돌났어 다시 리퀘스트 요청해줘",
   "core_loop": [
     "merge_items",
     "complete_goal",
